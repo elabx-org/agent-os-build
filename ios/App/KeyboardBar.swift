@@ -579,6 +579,8 @@ final class KeyboardBar: UIInputView {
         config.baseBackgroundColor = Self.keyColor
         config.baseForegroundColor = key.destructive ? .systemRed : .label
 
+        // One line: a key never wraps its title (Ho/me)
+        config.titleLineBreakMode = .byClipping
         // Clear of its flick's corner label, as the keyboard's own keys
         if key.flick != nil { config.contentInsets.top = 8 }
         let button = KeyButton(configuration: config)
