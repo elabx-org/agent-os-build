@@ -18,7 +18,7 @@ jobs:
           DEV=$(xcrun simctl list devices available | grep -iE "iPhone" | head -1 | sed -E 's/^ *(.*) \(([0-9A-F-]+)\).*/\2/')
           echo "device $DEV"
           set -o pipefail
-          TEST_RUNNER_PROBE_OUT=$PWD/probe-out xcodebuild test -project AgentOS.xcodeproj -scheme AgentOS -destination "id=$DEV" CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "PROBE|error|failed|passed" | head -400
+          TEST_RUNNER_PROBE_OUT=$PWD/probe-out xcodebuild test -project AgentOS.xcodeproj -scheme AgentOS -destination "id=$DEV" CODE_SIGNING_ALLOWED=NO 2>&1 | tee test.log | grep -E "PROBE|error|failed|passed"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
