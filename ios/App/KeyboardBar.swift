@@ -767,10 +767,15 @@ final class KeyboardBar: UIInputView {
         corner.textColor = .secondaryLabel
         corner.isUserInteractionEnabled = false
         corner.translatesAutoresizingMaskIntoConstraints = false
+        // Its own width exactly, inside the key: left loose, the stack took it
+        // for wrapping text and shared the row out in eighths
+        corner.setContentHuggingPriority(.required, for: .horizontal)
+        corner.setContentCompressionResistancePriority(.required, for: .horizontal)
         button.addSubview(corner)
         NSLayoutConstraint.activate([
             corner.topAnchor.constraint(equalTo: button.topAnchor, constant: 2),
             corner.trailingAnchor.constraint(equalTo: button.trailingAnchor, constant: -4),
+            corner.leadingAnchor.constraint(greaterThanOrEqualTo: button.leadingAnchor, constant: 2),
         ])
         let pan = FlickGesture(target: self, action: #selector(flicked(_:)))
         pan.sequences = flick.sequences
@@ -865,7 +870,7 @@ private final class FlickGesture: UIPanGestureRecognizer {
 }
 
 /// A key that can show its flick in place of its own title
-private final class KeyButton: UIButton {
+final class KeyButton: UIButton {
     var armed = false {
         didSet { if armed != oldValue { setNeedsUpdateConfiguration() } }
     }
