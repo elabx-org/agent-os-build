@@ -62,9 +62,11 @@ final class ColumnProbe: XCTestCase {
             ("c-session", #"{\#(base),"surface":"session","column":\#(session),"canGoBack":true}"#),
             ("d-empty", #"{\#(base),"surface":"now","column":[],"canGoBack":false}"#),
             ("e-null", #"{\#(base),"surface":"now","column":null}"#),
+            ("f-now-light", #"{"type":"state","viewMode":"chat","waiting":12,"changes":0,"accent":"rgb(37, 99, 235)","scheme":"light","surface":"now","column":\#(now.replacingOccurrences(of: "\"badge\":2", with: "\"badge\":12"))}"#),
         ]
         for (name, extra) in cases {
             model.receive(json(extra ?? "{\(base)}"))
+            window.overrideUserInterfaceStyle = model.scheme == .light ? .light : .dark
             settle(window)
             print("PROBE \(name) column=\(model.column.map { "\($0.count) items" } ?? "nil") hidden=\(model.columnHidden) duo=\(String(describing: model.duo))")
             print("PROBE \(name) labels \(labels(window))")
