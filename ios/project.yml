@@ -30,7 +30,7 @@ targets:
     info:
       path: App/Info.plist
       properties:
-        CFBundleDisplayName: AgentOS
+        CFBundleDisplayName: Agent-OS
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen:
@@ -48,14 +48,14 @@ targets:
         NSAppTransportSecurity:
           NSAllowsArbitraryLoadsInWebContent: true
         NSMicrophoneUsageDescription: Dictate prompts to your coding sessions.
-        NSFaceIDUsageDescription: Unlock AgentOS with Face ID.
+        NSFaceIDUsageDescription: Unlock Agent-OS with Face ID.
         NSCameraUsageDescription: Attach photos to your coding sessions.
         NSPhotoLibraryUsageDescription: Attach images to your coding sessions.
         # agentos://session/<id> opens a session (ntfy notifications link here)
         CFBundleURLTypes:
           - CFBundleURLName: org.elabx.agentos
             CFBundleURLSchemes: [agentos]
-        # "Open in AgentOS" from the share sheet and Files: the file is
+        # "Open in Agent-OS" from the share sheet and Files: the file is
         # attached to the focused session (useSharedFiles in the web app)
         CFBundleDocumentTypes:
           - CFBundleTypeName: File
@@ -68,3 +68,25 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: org.elabx.agentos
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: "NO"
+
+  AgentOSProbe:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Probe
+    dependencies:
+      - target: AgentOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/AgentOS.app/AgentOS
+        BUNDLE_LOADER: $(TEST_HOST)
+
+schemes:
+  AgentOS:
+    build:
+      targets:
+        AgentOS: all
+    test:
+      targets:
+        - AgentOSProbe
