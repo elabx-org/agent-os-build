@@ -11,19 +11,25 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: sudo xcode-select -s /Applications/Xcode_27.1.app
-      - run: xcodebuild -version && xcrun swift --version
       - run: brew install xcodegen && xcodegen generate
       - name: Probe
         run: |
-          DEV=$(xcrun simctl list devices available | grep -iE "iPhone" | head -1 | sed -E 's/^ *(.*) \(([0-9A-F-]+)\).*/\2/')
+          xcrun simctl list devices available | grep -iE "iPhone" | head -30
+          DEV=$(xcrun simctl list devices available | grep -iE "iPhone Duo" | head -1 | sed -E 's/^ *(.*) \(([0-9A-F-]+)\).*/\2/')
+          [ -n "$DEV" ] || DEV=$(xcrun simctl list devices available | grep -iE "iPhone" | head -1 | sed -E 's/^ *(.*) \(([0-9A-F-]+)\).*/\2/')
           echo "device $DEV"
           mkdir -p probe-out
-          for CONFIG in Debug Release; do
-            echo "=== $CONFIG ==="
-            xcodebuild test -project AgentOS.xcodeproj -scheme AgentOS -destination "id=$DEV" \
-              -only-testing:AgentOSProbe/PasteProbe -configuration $CONFIG ENABLE_TESTABILITY=YES \
-              CODE_SIGNING_ALLOWED=NO > probe-out/test-$CONFIG.log 2>&1 || echo "PROBE $CONFIG xcodebuild exit $?"
-            grep -E "PROBE|error:|failed|passed|rash|ssumption|isolat" probe-out/test-$CONFIG.log | head -60 || true
+          (cd probe-page && python3 -m http.server 8123 --bind 127.0.0.1 > ../probe-out/http.log 2>&1 &)
+          xcrun simctl boot "$DEV" || true
+          xcrun simctl bootstatus "$DEV" -b
+          printf 'hello from another app' | xcrun simctl pbcopy "$DEV"
+          xcrun simctl pbpaste "$DEV"; echo
+          for SIGN in "CODE_SIGNING_ALLOWED=NO" "CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=-"; do
+            echo "=== $SIGN ==="
+            TEST_RUNNER_PROBE_OUT=$PWD/probe-out xcodebuild test -project AgentOS.xcodeproj -scheme AgentOS -destination "id=$DEV" \
+              -only-testing:AgentOSUITests $SIGN > probe-out/uitest.log 2>&1 || echo "PROBE xcodebuild exit $?"
+            grep -E "PROBE|error:|rash|Executed|Test Case" probe-out/uitest.log | grep -v "PROBE tree" | cut -c1-400 | head -60 || true
+            grep -q "PROBE box" probe-out/uitest.log && break
           done
           cp ~/Library/Logs/DiagnosticReports/AgentOS* probe-out/ 2>/dev/null || true
           ls probe-out

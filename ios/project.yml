@@ -73,7 +73,7 @@ targets:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - Probe
+      - path: Probe
     dependencies:
       - target: AgentOS
     settings:
@@ -81,6 +81,18 @@ targets:
         GENERATE_INFOPLIST_FILE: "YES"
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/AgentOS.app/AgentOS
         BUNDLE_LOADER: $(TEST_HOST)
+
+  AgentOSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - UIProbe
+    dependencies:
+      - target: AgentOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: "YES"
+        TEST_TARGET_NAME: AgentOS
 
 schemes:
   AgentOS:
@@ -90,3 +102,4 @@ schemes:
     test:
       targets:
         - AgentOSProbe
+        - AgentOSUITests
