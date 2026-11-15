@@ -22,8 +22,12 @@ jobs:
           (cd probe-page && python3 -m http.server 8123 --bind 127.0.0.1 > ../probe-out/http.log 2>&1 &)
           xcrun simctl boot "$DEV" || true
           xcrun simctl bootstatus "$DEV" -b
-          printf 'hello from another app' | xcrun simctl pbcopy "$DEV"
-          xcrun simctl pbpaste "$DEV"; echo
+          sleep 20
+          for TRY in 1 2 3 4; do
+            printf 'hello from another app' | xcrun simctl pbcopy "$DEV" && break
+            echo "pbcopy try $TRY failed"; sleep 15
+          done
+          xcrun simctl pbpaste "$DEV" || true; echo
           for SIGN in "CODE_SIGNING_ALLOWED=NO" "CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=-"; do
             echo "=== $SIGN ==="
             TEST_RUNNER_PROBE_OUT=$PWD/probe-out xcodebuild test -project AgentOS.xcodeproj -scheme AgentOS -destination "id=$DEV" \
