@@ -26,6 +26,15 @@ final class PasteTap: XCTestCase {
         if !found { print("PROBE tree \(app.debugDescription)"); XCTFail("no text box"); return }
         box.tap()
         sleep(3)
+        // The keyboard's first-run tip covers the bar
+        for owner in [app, springboard] {
+            let go = owner.descendants(matching: .any).matching(NSPredicate(format: "label == 'Continue'")).firstMatch
+            if go.exists { go.tap(); print("PROBE continued"); sleep(2); break }
+        }
+        if app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Speed up'")).firstMatch.exists {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.915)).tap()
+            print("PROBE continued by point"); sleep(2)
+        }
         shot("2-focused")
         let named = NSPredicate(format: "label CONTAINS[c] 'paste' OR identifier CONTAINS[c] 'paste'")
         let paste = app.descendants(matching: .any).matching(named).firstMatch
@@ -36,6 +45,13 @@ final class PasteTap: XCTestCase {
         paste.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         print("PROBE tapped")
         sleep(4)
+        if app.state == .runningForeground, (app.webViews.textViews.firstMatch.value as? String ?? "").isEmpty {
+            shot("3-first-tap")
+            app.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: paste.frame.midX, dy: paste.frame.midY)).tap()
+            print("PROBE tapped by point")
+            sleep(4)
+        }
         shot("3-after")
         print("PROBE state \(app.state.rawValue)")
         let prompt = springboard.buttons["Allow Paste"]
